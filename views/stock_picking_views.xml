@@ -1,0 +1,132 @@
+<odoo>
+  <data>
+
+        <record id="view_picking_form_inherit_alzajel" model="ir.ui.view">
+            <field name="name">stock.picking.form.inherit.alzajel</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button name="action_get_alzajel_status" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="fa-refresh"
+                            attrs="{'invisible': [('alzajel_order_id', '=', False)]}">
+                        <span>Update Status</span>
+                    </button>
+                </xpath>
+                <xpath expr="//page[@name='extra']" position="after">
+                    <page string="Alzajel Shipping" attrs="{'invisible': [('alzajel_order_id', '=', False)]}">
+                        <group>
+                            <group>
+                                <field name="alzajel_order_id"/>
+                                <field name="alzajel_status"/>
+                                <field name="alzajel_status_code"/>
+                                <field name="alzajel_shipping_cost"/>
+                                <field name="alzajel_tracking_url" widget="url"/>
+                            </group>
+                            <group>
+                                <field name="alzajel_driver_name"/>
+                                <field name="alzajel_driver_phone"/>
+                                <field name="alzajel_date_assigned"/>
+                                <field name="alzajel_date_delivered"/>
+                                <field name="alzajel_date_expected"/>
+                                <field name="alzajel_qr_code" widget="url"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+                <xpath expr="//header" position="inside">
+                    <button name="action_create_alzajel_order" 
+                            string="Create Alzajel Shipping" 
+                            type="object" 
+                            class="btn-primary"
+                            attrs="{'invisible': ['|', ('state', 'not in', ['assigned', 'confirmed']), ('alzajel_order_id', '!=', False)]}"/>
+                </xpath>
+                
+                <xpath expr="//page[@name='extra']" position="after">
+                    <page string="Alzajel Shipping" name="alzajel_shipping">
+                        <group>
+                            <group string="Shipping Configuration">
+                                <field name="alzajel_shipment_type"/>
+                                <field name="alzajel_delivery_type"/>
+                                <field name="alzajel_delivery_fee_by"/>
+                                <field name="alzajel_order_notes"/>
+                            </group>
+                            <group string="Shipping Information" attrs="{'invisible': [('alzajel_order_id', '=', False)]}">
+                                <field name="alzajel_order_id"/>
+                                <field name="alzajel_status"/>
+                                <field name="alzajel_delivery_code"/>
+                                <field name="alzajel_shipping_cost"/>
+                            </group>
+                        </group>
+                        <group string="Documents" attrs="{'invisible': [('alzajel_order_id', '=', False)]}">
+                            <group>
+                                <field name="alzajel_receipt_url" widget="url"/>
+                                <field name="alzajel_treno_url" widget="url"/>
+                                <field name="alzajel_sender_pdf" widget="url"/>
+                            </group>
+                            <group>
+                                <field name="alzajel_tracking_url" widget="url"/>
+                                <field name="alzajel_live_tracking_url" widget="url"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+                <xpath expr="//header" position="inside">
+                    <button name="open_alzajel_wizard" 
+                            string="Update Alzajel Shipping" 
+                            type="object" 
+                            attrs="{'invisible': [('alzajel_order_id', '=', False)]}"
+                            class="btn-secondary"/>
+                </xpath>
+            </field>
+        </record>
+        
+        <record id="ir_cron_alzajel_status_update" model="ir.cron">
+            <field name="name">Alzajel: Update Shipping Status</field>
+            <field name="model_id" ref="model_stock_picking"/>
+            <field name="state">code</field>
+            <field name="code">zajil_api._alzajel_cron_update_status()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="active" eval="True"/>
+        </record>
+
+
+
+
+
+
+
+        <record id="view_alzajel_shipping_update_wizard_form" model="ir.ui.view">
+        <field name="name">alzajel.shipping.update.wizard.form</field>
+        <field name="model">alzajel.shipping.update.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Update Alzajel Shipping">
+                <sheet>
+                    <group>
+                        <field name="picking_id" invisible="1"/>
+                        <field name="shipment_type"/>
+                        <field name="delivery_type"/>
+                        <field name="delivery_fee_by"/>
+                        <field name="order_notes"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_update_shipping" 
+                            string="Update Shipping" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button special="cancel" 
+                            string="Cancel" 
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+ 
+  </data>
+</odoo>

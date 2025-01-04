@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_alzajel_shipping_update_wizard,access.alzajel.shipping.update.wizard,model_alzajel_shipping_update_wizard,stock.group_stock_user,1,1,1,1
