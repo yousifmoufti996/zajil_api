@@ -21,10 +21,10 @@
     # any module necessary for this one to work correctly
     'depends': ['stock', 'delivery'],
     'data': [
-        'security/ir.model.access.csv',
-        'wizard/alzajel_shipping_wizard_views.xml',
-        'views/res_config_settings_views.xml',
-        'views/stock_picking_views.xml',
+        # 'security/ir.model.access.csv',
+        # 'wizard/alzajel_shipping_wizard_views.xml',
+        # 'views/res_config_settings_views.xml',
+        # 'views/stock_picking_views.xml',
     ],
     'installable': True,
     # only loaded in demonstration mode
