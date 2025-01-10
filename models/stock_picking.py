@@ -115,7 +115,7 @@ class StockPicking(models.Model):
                 "pick_up_details": {
                     "pick_up_customer_name": self.company_id.name,
                     "pick_up_customer_phone": company_phone,
-                    # "pick_up_location": [pickup_lat, pickup_lng],
+                    "pick_up_location": "",
                     "pick_up_address": f"{self.company_id.street or ''} {self.company_id.street2 or ''}".strip(),
                     "pick_up_date": fields.Date.today().strftime('%Y-%m-%d'),
                     "pick_up_time": "11:45"
