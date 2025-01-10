@@ -44,7 +44,7 @@ class StockPicking(models.Model):
                 }
             }
         else:
-            raise exceptions.UserError(_("Failed to create Zajil shipment"))
+            raise Exception.UserError(_("Failed to create Zajil shipment"))
 
     def _prepare_zajil_data(self):
         # Get related sale order or invoice
