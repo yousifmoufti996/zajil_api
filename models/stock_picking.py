@@ -115,7 +115,7 @@ class StockPicking(models.Model):
                 "delivery_type": "1",
                 "pick_up_details": {
                     "pick_up_customer_name": self.company_id.name,
-                    "pick_up_customer_phone": "07345678914",
+                    "pick_up_customer_phone": "07745678914",
                     "pick_up_location":[33.323097,44.32587],
                     "pick_up_address":"test",
                     "pick_up_date": fields.Date.today().strftime('%Y-%m-%d'),
