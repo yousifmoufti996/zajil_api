@@ -109,13 +109,13 @@ class StockPicking(models.Model):
 
             zajil_data = {
                 "vendor_id": vendor_id,
-                "order_notes": invoice.narration or "",
+                "order_notes": "test",#invoice.narration or "",
                 "shipment_type_id": "2",
                 "Delivery_Fee_pay_By": 1,
                 "delivery_type": "1",
                 "pick_up_details": {
                     "pick_up_customer_name": self.company_id.name,
-                    "pick_up_customer_phone": "07745678914",
+                    "pick_up_customer_phone": "07715154059",
                     "pick_up_location":[33.323097,44.32587],
                     "pick_up_address":"test",
                     "pick_up_date": fields.Date.today().strftime('%Y-%m-%d'),
