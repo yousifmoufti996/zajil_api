@@ -168,11 +168,21 @@ class StockPicking(models.Model):
         """Format phone number to required format"""
         if not phone:
             return ""
+
         # Remove any non-digit characters
         phone = ''.join(filter(str.isdigit, phone))
-        # Ensure it starts with correct format
+
+        # Remove leading zeros
+        phone = phone.lstrip('0')
+
+        # Remove country code if present
         if phone.startswith('964'):
-            phone = '0' + phone[3:]
+            phone = phone[3:]
         elif phone.startswith('00964'):
-            phone = '0' + phone[5:]
+            phone = phone[5:]
+
+        # Ensure the number is at least 9 digits
+        if len(phone) < 9:
+            raise exceptions.UserError(_("Phone number must be at least 9 digits long"))
+
         return phone
