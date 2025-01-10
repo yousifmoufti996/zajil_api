@@ -115,7 +115,7 @@ class StockPicking(models.Model):
                 "pick_up_details": {
                     "pick_up_customer_name": self.company_id.name,
                     "pick_up_customer_phone": company_phone,
-                    "pick_up_location": "",
+                    "pick_up_location": [],
                     "pick_up_address": f"{self.company_id.street or ''} {self.company_id.street2 or ''}".strip(),
                     "pick_up_date": fields.Date.today().strftime('%Y-%m-%d'),
                     "pick_up_time": "11:45"
@@ -123,7 +123,7 @@ class StockPicking(models.Model):
                 "destination_details": {
                     "destination_customer_name": invoice.partner_id.name,
                     "destination_customer_phone": customer_phone,
-                    "destination_location": [destination_lat, destination_lng],
+                    "destination_location": [],
                     "destination_address": f"{invoice.partner_id.street or ''} {invoice.partner_id.street2 or ''}".strip(),
                     "destination_date": fields.Date.today().strftime('%Y-%m-%d'),
                     "destination_time": "14:30"
@@ -144,7 +144,7 @@ class StockPicking(models.Model):
         try:
             url = 'https://alzajelservice.com/api/create_merchant_order_pdf'
             headers = {
-                'auth_key': 'Jkc35282499ZvDs78204815ASUc71226',
+                'auth_key': 'ZLa41648Wvkl2402501fSZx23797gSub',
                 'Content-Type': 'application/json'
             }
 
