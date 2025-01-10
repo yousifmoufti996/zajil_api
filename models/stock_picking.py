@@ -36,6 +36,19 @@ class StockPicking(models.Model):
                 _logger.info("Updating picking with values: %s", update_vals)
                 
                 self.write(update_vals)
+                tracking_msg = _("""Zajil Delivery Created Successfully
+                    Order ID: %s
+                    Delivery Code: %s
+                    Status: %s
+                    Tracking URL: %s
+                    Receipt URL: %s""") % (
+                    response.get('order_id'),
+                    response.get('delivery_code'),
+                    response.get('order_status'),
+                    response.get('track_url'),
+                    response.get('orderReciptUrl')
+                )
+                self.message_post(body=tracking_msg)
 
                 # Call parent validation
                 res = super(StockPicking, self).button_validate()
@@ -45,9 +58,22 @@ class StockPicking(models.Model):
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
-                        'message': _("The shipment has been successfully sent to Zajil."),
+                        'title': _("Success"),
+                        'message': _("""Shipment created successfully!
+                                                                        Order ID: %s
+                                                                        Tracking Code: %s
+                                                                        Status: %s""") % (
+                            response.get('order_id'),
+                            response.get('delivery_code'),
+                            response.get('order_status')
+                        ),
                         'type': 'success',
                         'sticky': False,
+                        'next': {
+                            'type': 'ir.actions.act_url',
+                            'url': response.get('track_url'),
+                            'target': 'new'
+                        }
                     }
                 }
             else:
@@ -58,6 +84,17 @@ class StockPicking(models.Model):
             _logger.error("Error in process_sajil_delivery: %s", str(e), exc_info=True)
             raise exceptions.UserError(_(f"Error processing Zajil delivery: {str(e)}"))
 
+    
+    def action_view_zajil_tracking(self):
+        self.ensure_one()
+        if self.zajil_tracking_url:
+            return {
+                'type': 'ir.actions.act_url',
+                'url': self.zajil_tracking_url,
+                'target': 'new'
+            }
+        raise exceptions.UserError(_("No tracking URL available"))
+    
     def _prepare_zajil_data(self):
         try:
             _logger.info("Preparing Zajil data for picking ID: %s", self.id)

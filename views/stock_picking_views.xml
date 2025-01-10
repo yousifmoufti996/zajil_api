@@ -1,7 +1,31 @@
 <odoo>
   <data>
+        <record id="view_picking_form_inherit_zajil" model="ir.ui.view">
+            <field name="name">stock.picking.form.inherit.zajil</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button name="action_view_zajil_tracking" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="fa-truck" 
+                           invisible = "[('zajil_tracking_url', '=', False)]">
+                        <field name="zajil_delivery_code" widget="statinfo" string="Zajil Tracking"/>
+                    </button>
+                </xpath>
+                <xpath expr="//group[@name='other_infos']" position="inside">
+                    <group string="Zajil Delivery" attrs="{'invisible': [('zajil_delivery_code', '=', False)]}">
+                        <field name="zajil_delivery_code"/>
+                        <field name="carrier_tracking_ref"/>
+                        <field name="zajil_tracking_url" widget="url"/>
+                        <field name="zajil_receipt_url" widget="url"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
 
-        <record id="view_picking_form_inherit_alzajel" model="ir.ui.view">
+        <!-- <record id="view_picking_form_inherit_alzajel" model="ir.ui.view">
             <field name="name">stock.picking.form.inherit.alzajel</field>
             <field name="model">stock.picking</field>
             <field name="inherit_id" ref="stock.view_picking_form"/>
@@ -120,7 +144,7 @@
                     </footer>
                 </form>
             </field>
-        </record>
+        </record> -->
  
   </data>
 </odoo>
