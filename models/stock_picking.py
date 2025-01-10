@@ -94,7 +94,8 @@ class StockPicking(models.Model):
 
             # Get company coordinates from system parameters
             IrConfigParam = self.env['ir.config_parameter'].sudo()
-            vendor_id = IrConfigParam.get_param('zajil.vendor_id', '61fa6fc9e0809f2151728ebc')
+            # vendor_id = IrConfigParam.get_param('zajil.vendor_id', '61fa6fc9e0809f2151728ebc')
+            vendor_id = "6773e6a250b1b88c1b701857"
             # pickup_lat = float(IrConfigParam.get_param('zajil.pickup_lat', '33.33332'))
             # pickup_lng = float(IrConfigParam.get_param('zajil.pickup_lng', '44.45220'))
 
@@ -123,7 +124,7 @@ class StockPicking(models.Model):
                 "destination_details": {
                     "destination_customer_name": invoice.partner_id.name,
                     "destination_customer_phone": customer_phone,
-                    "destination_location": ["",""],
+                    "destination_location":[33.323097,44.32587],
                     "destination_address": f"{invoice.partner_id.street or ''} {invoice.partner_id.street2 or ''}".strip(),
                     "destination_date": fields.Date.today().strftime('%Y-%m-%d'),
                     "destination_time": "14:30"
