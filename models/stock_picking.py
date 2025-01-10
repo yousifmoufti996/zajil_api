@@ -11,7 +11,9 @@ _logger = logging.getLogger(__name__)
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-
+    zajil_delivery_code = fields.Char(string='Zajil Delivery Code', readonly=True)
+    zajil_tracking_url = fields.Char(string='Zajil Tracking URL', readonly=True)
+    zajil_receipt_url = fields.Char(string='Zajil Receipt URL', readonly=True)
 
     def process_sajil_delivery(self):
         # Prepare Zajil shipment data
