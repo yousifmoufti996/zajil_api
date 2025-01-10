@@ -1,8 +1,7 @@
-from odoo import models, fields, api
 import requests
 import json
 import logging
-from odoo.exceptions import UserError
+from odoo import models, fields, exceptions , _, api
 from datetime import datetime
 
 _logger = logging.getLogger(__name__)
@@ -44,7 +43,7 @@ class StockPicking(models.Model):
                 }
             }
         else:
-            raise Exception.UserError(_("Failed to create Zajil shipment"))
+            raise exceptions.UserError(_("Failed to create Zajil shipment"))
 
     def _prepare_zajil_data(self):
         # Get related sale order or invoice
