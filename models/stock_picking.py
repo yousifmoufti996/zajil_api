@@ -6,12 +6,85 @@ from datetime import datetime
 
 _logger = logging.getLogger(__name__)
 
+
+zajilauthkey = "ZLa41648Wvkl2402501fSZx23797gSub" 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     zajil_delivery_code = fields.Char(string='Zajil Delivery Code', readonly=True)
     zajil_tracking_url = fields.Char(string='Zajil Tracking URL', readonly=True)
     zajil_receipt_url = fields.Char(string='Zajil Receipt URL', readonly=True)
+    zajil_order_state = fields.Selection([
+        ('created', 'Created'),
+        ('cancelled', 'Cancelled')
+    ], string='Zajil Order State', copy=False)
+    
+    def action_cancel_zajil_shipment(self):
+        """Cancel Zajil shipment"""
+        self.ensure_one()
+
+        if not self.carrier_tracking_ref:
+            raise exceptions.UserError(_("No Zajil shipment found to cancel."))
+
+        try:
+            _logger.info("Attempting to cancel Zajil shipment: %s", self.carrier_tracking_ref)
+
+            # Prepare cancel request
+            url = 'https://alzajelservice.com/api/cancel_order'
+            headers = {
+                'auth_key': zajilauthkey,
+                'Content-Type': 'application/json'
+            }
+            data = {
+                'shipmentNo': self.carrier_tracking_ref
+            }
+
+            _logger.info("Sending cancel request to Zajil API - Data: %s", data)
+
+            response = requests.post(url, json=data, headers=headers)
+            _logger.info("Zajil API Cancel Response Status Code: %s", response.status_code)
+            _logger.info("Zajil API Cancel Response Content: %s", response.text)
+
+            response_data = response.json()
+
+            if response_data.get('success'):
+                # Update picking status
+                self.write({
+                    'zajil_order_state': 'cancelled'
+                })
+
+                # Create message in chatter
+                cancel_msg = _("""Zajil Shipment Cancelled Successfully
+Order ID: %s
+Message: %s
+Cancellation Charge: %s""") % (
+                    self.carrier_tracking_ref,
+                    response_data.get('message'),
+                    response_data.get('order_cancellation_charge', 0)
+                )
+                self.message_post(body=cancel_msg)
+
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': _("Success"),
+                        'message': _("Zajil shipment cancelled successfully."),
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
+            else:
+                error_msg = response_data.get('message', 'Unknown error')
+                _logger.error("Failed to cancel Zajil shipment: %s", error_msg)
+                raise exceptions.UserError(_(f"Failed to cancel Zajil shipment: {error_msg}"))
+
+        except requests.exceptions.RequestException as e:
+            _logger.error("Error in Zajil API cancel request: %s", str(e), exc_info=True)
+            raise exceptions.UserError(_(f"Error communicating with Zajil API: {str(e)}"))
+        except Exception as e:
+            _logger.error("Error cancelling Zajil shipment: %s", str(e), exc_info=True)
+            raise exceptions.UserError(_(f"Error cancelling Zajil shipment: {str(e)}"))
 
     def process_sajil_delivery(self):
         try:
@@ -184,7 +257,7 @@ class StockPicking(models.Model):
         try:
             url = 'https://alzajelservice.com/api/create_merchant_order_pdf'
             headers = {
-                'auth_key': 'ZLa41648Wvkl2402501fSZx23797gSub',
+                'auth_key':zajilauthkey,
                 'Content-Type': 'application/json'
             }
 
