@@ -129,9 +129,7 @@ class StockPicking(models.Model):
                             package_detail, move_line.product_id.name)
                 package_details.append(package_detail)
 
-            # Get company coordinates from system parameters
-            # IrConfigParam = self.env['ir.config_parameter'].sudo()
-            # vendor_id = IrConfigParam.get_param('zajil.vendor_id', '61fa6fc9e0809f2151728ebc')
+          
             vendor_id = "6773e6a250b1b88c1b701857"
             # pickup_lat = float(IrConfigParam.get_param('zajil.pickup_lat', '33.33332'))
             # pickup_lng = float(IrConfigParam.get_param('zajil.pickup_lng', '44.45220'))
@@ -139,6 +137,10 @@ class StockPicking(models.Model):
             # Format phone numbers
             company_phone = self._format_phone_number(self.company_id.phone)
             customer_phone = self._format_phone_number(invoice.partner_id.phone)
+            if ( len(customer_phone) ==0 ):
+                customer_phone = self._format_phone_number(invoice.partner_id.mobile)
+                if(len(customer_phone) ==0 ):
+                    raise exceptions.UserError(_("Error phone number is not true"))
 
             # Get destination coordinates if available
             destination_lat = invoice.partner_id.partner_latitude or 33.32208
@@ -152,11 +154,11 @@ class StockPicking(models.Model):
                 "delivery_type": "1",
                 "pick_up_details": {
                     "pick_up_customer_name": self.company_id.name,
-                    "pick_up_customer_phone": "07715154059",
+                    "pick_up_customer_phone": self._format_phone_number(self.company_id.phone),
                     "pick_up_location":[33.323097,44.32587],
-                    "pick_up_address":"test",
+                    "pick_up_address": self.company_id.street or "Default Address",
                     "pick_up_date": fields.Date.today().strftime('%Y-%m-%d'),
-                    "pick_up_time": "11:45"
+                    "pick_up_time": datetime.now().strftime('%H:%M')
                 },
                 "destination_details": {
                     "destination_customer_name": invoice.partner_id.name,
@@ -164,7 +166,7 @@ class StockPicking(models.Model):
                     "destination_location":[33.323097,44.32587],
                     "destination_address": f"{invoice.partner_id.street or ''} {invoice.partner_id.street2 or ''}".strip(),
                     "destination_date": fields.Date.today().strftime('%Y-%m-%d'),
-                    "destination_time": "14:30"
+                    "destination_time": datetime.now().strftime('%H:%M')
                 },
                 "no_of_items": str(len(package_details)),
                 "package_details": package_details
