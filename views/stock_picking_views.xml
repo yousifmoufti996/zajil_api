@@ -10,7 +10,7 @@
                             type="object" 
                             class="oe_stat_button" 
                             icon="fa-truck" 
-                           invisible = "[('zajil_tracking_url', '=', False)]">
+                            invisible="not zajil_tracking_url">
                         <field name="zajil_delivery_code" widget="statinfo" string="Zajil Tracking"/>
                     </button>
                 </xpath>
