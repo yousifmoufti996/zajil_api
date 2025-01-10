@@ -61,7 +61,7 @@ class StockPicking(models.Model):
     def _prepare_zajil_data(self):
         try:
             _logger.info("Preparing Zajil data for picking ID: %s", self.id)
-            
+
             # Get related sale order or invoice
             invoice = self.env['account.move'].sudo().search([
                 ('invoice_origin', '=', self.origin)
@@ -71,27 +71,40 @@ class StockPicking(models.Model):
                 _logger.error("No invoice found for origin: %s", self.origin)
                 raise exceptions.UserError('No invoice found')
 
+            # Create a mapping of product_id to price from invoice lines
+            product_prices = {
+                line.product_id.id: line.price_unit
+                for line in invoice.invoice_line_ids
+            }
+
             # Prepare package details
             package_details = []
             for move_line in self.move_line_ids:
+                price = product_prices.get(move_line.product_id.id, 0)
                 package_detail = {
                     "length": "30",
                     "width": "30",
                     "height": "30",
                     "package_weight": str(move_line.product_id.weight or 1),
-                    "package_price": move_line.sale_line_id.price_unit if move_line.sale_line_id else 0
+                    "package_price": price
                 }
+                _logger.info("Created package detail: %s for product: %s",
+                            package_detail, move_line.product_id.name)
                 package_details.append(package_detail)
 
             # Get company coordinates from system parameters
             IrConfigParam = self.env['ir.config_parameter'].sudo()
             vendor_id = IrConfigParam.get_param('zajil.vendor_id', '61fa6fc9e0809f2151728ebc')
-            pickup_lat = float(IrConfigParam.get_param('zajil.pickup_lat', '33.33332'))
-            pickup_lng = float(IrConfigParam.get_param('zajil.pickup_lng', '44.45220'))
+            # pickup_lat = float(IrConfigParam.get_param('zajil.pickup_lat', '33.33332'))
+            # pickup_lng = float(IrConfigParam.get_param('zajil.pickup_lng', '44.45220'))
 
             # Format phone numbers
             company_phone = self._format_phone_number(self.company_id.phone)
             customer_phone = self._format_phone_number(invoice.partner_id.phone)
+
+            # Get destination coordinates if available
+            destination_lat = invoice.partner_id.partner_latitude or 33.32208
+            destination_lng = invoice.partner_id.partner_longitude or 44.35281
 
             zajil_data = {
                 "vendor_id": vendor_id,
@@ -103,15 +116,15 @@ class StockPicking(models.Model):
                     "pick_up_customer_name": self.company_id.name,
                     "pick_up_customer_phone": company_phone,
                     # "pick_up_location": [pickup_lat, pickup_lng],
-                    "pick_up_address": self.company_id.street or "",
+                    "pick_up_address": f"{self.company_id.street or ''} {self.company_id.street2 or ''}".strip(),
                     "pick_up_date": fields.Date.today().strftime('%Y-%m-%d'),
                     "pick_up_time": "11:45"
                 },
                 "destination_details": {
                     "destination_customer_name": invoice.partner_id.name,
                     "destination_customer_phone": customer_phone,
-                    "destination_location": [33.32208, 44.35281],  # Default coordinates
-                    "destination_address": invoice.partner_id.street or "",
+                    "destination_location": [destination_lat, destination_lng],
+                    "destination_address": f"{invoice.partner_id.street or ''} {invoice.partner_id.street2 or ''}".strip(),
                     "destination_date": fields.Date.today().strftime('%Y-%m-%d'),
                     "destination_time": "14:30"
                 },
@@ -119,12 +132,13 @@ class StockPicking(models.Model):
                 "package_details": package_details
             }
 
-            _logger.info("Successfully prepared Zajil data")
+            _logger.info("Successfully prepared Zajil data: %s", json.dumps(zajil_data, indent=2))
             return zajil_data
-            
+
         except Exception as e:
             _logger.error("Error preparing Zajil data: %s", str(e), exc_info=True)
             raise exceptions.UserError(_(f"Error preparing shipment data: {str(e)}"))
+    
 
     def _send_zajil_request(self, data):
         try:
