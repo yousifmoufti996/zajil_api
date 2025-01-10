@@ -93,7 +93,7 @@ class StockPicking(models.Model):
                 package_details.append(package_detail)
 
             # Get company coordinates from system parameters
-            IrConfigParam = self.env['ir.config_parameter'].sudo()
+            # IrConfigParam = self.env['ir.config_parameter'].sudo()
             # vendor_id = IrConfigParam.get_param('zajil.vendor_id', '61fa6fc9e0809f2151728ebc')
             vendor_id = "6773e6a250b1b88c1b701857"
             # pickup_lat = float(IrConfigParam.get_param('zajil.pickup_lat', '33.33332'))
