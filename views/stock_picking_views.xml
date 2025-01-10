@@ -15,7 +15,7 @@
                     </button>
                 </xpath>
                 <xpath expr="//group[@name='other_infos']" position="inside">
-                    <group string="Zajil Delivery" attrs="{'invisible': [('zajil_delivery_code', '=', False)]}">
+                    <group string="Zajil Delivery" invisible="not zajil_delivery_code">
                         <field name="zajil_delivery_code"/>
                         <field name="carrier_tracking_ref"/>
                         <field name="zajil_tracking_url" widget="url"/>
