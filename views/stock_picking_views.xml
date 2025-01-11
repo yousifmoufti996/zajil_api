@@ -42,7 +42,7 @@
                         <field name="zajil_order_state"/>
                     </group>
 
-                    <group name="zajil_status_info" string="Zajil Status Information" attrs="{'invisible': [('carrier_tracking_ref', '=', False)]}">
+                    <group name="zajil_status_info" string="Zajil Status Information"  invisible=" carrier_tracking_ref and zajil_order_state == 'created'">
                         <field name="zajil_status"/>
                         <field name="zajil_status_code"/>
                         <field name="zajil_driver_name"/>
