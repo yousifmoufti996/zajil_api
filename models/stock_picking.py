@@ -298,3 +298,67 @@ Cancellation Charge: %s""") % (
             raise exceptions.UserError(_("Phone number must be at least 9 digits long"))
 
         return phone
+    
+    
+    def action_update_zajil_shipment(self):
+        """Update Zajil shipment details"""
+        self.ensure_one()
+
+        if not self.carrier_tracking_ref:
+            raise exceptions.UserError(_("No Zajil shipment found to update."))
+
+        try:
+            _logger.info("Attempting to update Zajil shipment: %s", self.carrier_tracking_ref)
+
+            # Prepare update data using existing method with modifications
+            zajil_data = self._prepare_zajil_data()
+
+            # Add shipment number to the data
+            zajil_data['shipmentNo'] = self.carrier_tracking_ref
+
+            # Send update request
+            url = 'https://alzajelservice.com/api/update_order'
+            headers = {
+                'auth_key': zajilauthkey,
+                'Content-Type': 'application/json'
+            }
+
+            _logger.info("Sending update request to Zajil API - Data: %s", zajil_data)
+
+            response = requests.post(url, json=zajil_data, headers=headers)
+            _logger.info("Zajil API Update Response Status Code: %s", response.status_code)
+            _logger.info("Zajil API Update Response Content: %s", response.text)
+
+            response_data = response.json()
+
+            if response_data.get('success'):
+                # Create message in chatter
+                update_msg = _("""Zajil Shipment Updated Successfully
+    Shipment No: %s
+    Message: %s""") % (
+                    self.carrier_tracking_ref,
+                    response_data.get('message')
+                )
+                self.message_post(body=update_msg)
+
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': _("Success"),
+                        'message': _("Zajil shipment updated successfully."),
+                        'type': 'success',
+                        'sticky': False,
+                    }
+                }
+            else:
+                error_msg = response_data.get('message', 'Unknown error')
+                _logger.error("Failed to update Zajil shipment: %s", error_msg)
+                raise exceptions.UserError(_(f"Failed to update Zajil shipment: {error_msg}"))
+
+        except requests.exceptions.RequestException as e:
+            _logger.error("Error in Zajil API update request: %s", str(e), exc_info=True)
+            raise exceptions.UserError(_(f"Error communicating with Zajil API: {str(e)}"))
+        except Exception as e:
+            _logger.error("Error updating Zajil shipment: %s", str(e), exc_info=True)
+            raise exceptions.UserError(_(f"Error updating Zajil shipment: {str(e)}"))
