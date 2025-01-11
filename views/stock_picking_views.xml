@@ -18,6 +18,11 @@
                         type="object" 
                         invisible="not carrier_tracking_ref or zajil_order_state == 'cancelled'"
                         class="oe_highlight"/>
+                    <button name="action_get_zajil_status" 
+                        string="Update Zajil Status" 
+                        type="object" 
+                        invisible=" carrier_tracking_ref and zajil_order_state == 'created'"
+                        class="oe_highlight"/>
                 </xpath>
                 <xpath expr="//div[@name='button_box']" position="inside">
                     <button name="action_view_zajil_tracking" 
@@ -35,6 +40,18 @@
                         <field name="zajil_tracking_url" widget="url"/>
                         <field name="zajil_receipt_url" widget="url"/>
                         <field name="zajil_order_state"/>
+                    </group>
+
+                    <group name="zajil_status_info" string="Zajil Status Information" attrs="{'invisible': [('carrier_tracking_ref', '=', False)]}">
+                        <field name="zajil_status"/>
+                        <field name="zajil_status_code"/>
+                        <field name="zajil_driver_name"/>
+                        <field name="zajil_driver_phone"/>
+                        <field name="zajil_date_assigned"/>
+                        <field name="zajil_date_delivered"/>
+                        <field name="zajil_date_expected"/>
+                        <field name="zajil_shipping_quote"/>
+                        <field name="zajil_qrcode_url" widget="url"/>
                     </group>
                 </xpath>
                 

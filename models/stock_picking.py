@@ -14,6 +14,20 @@ class StockPicking(models.Model):
     zajil_delivery_code = fields.Char(string='Zajil Delivery Code', readonly=True)
     zajil_tracking_url = fields.Char(string='Zajil Tracking URL', readonly=True)
     zajil_receipt_url = fields.Char(string='Zajil Receipt URL', readonly=True)
+    
+    
+    
+    zajil_status = fields.Char(string='Zajil Status', readonly=True)
+    zajil_status_code = fields.Integer(string='Status Code', readonly=True)
+    zajil_driver_name = fields.Char(string='Driver Name', readonly=True)
+    zajil_driver_phone = fields.Char(string='Driver Phone', readonly=True)
+    zajil_date_assigned = fields.Char(string='Date Assigned', readonly=True)
+    zajil_date_delivered = fields.Char(string='Date Delivered', readonly=True)
+    zajil_date_expected = fields.Char(string='Expected Delivery Date', readonly=True)
+    zajil_shipping_quote = fields.Char(string='Shipping Quote', readonly=True)
+    zajil_qrcode_url = fields.Char(string='QR Code URL', readonly=True)
+    
+    
     zajil_order_state = fields.Selection([
         ('created', 'Created'),
         ('cancelled', 'Cancelled')
@@ -362,3 +376,87 @@ Cancellation Charge: %s""") % (
         except Exception as e:
             _logger.error("Error updating Zajil shipment: %s", str(e), exc_info=True)
             raise exceptions.UserError(_(f"Error updating Zajil shipment: {str(e)}"))
+        
+    
+    
+    def action_get_zajil_status(self):
+        """Get current status of Zajil shipment"""
+        self.ensure_one()
+
+        if not self.carrier_tracking_ref:
+            raise exceptions.UserError(_("No Zajil shipment found to track."))
+
+        try:
+            _logger.info("Fetching status for Zajil shipment: %s", self.carrier_tracking_ref)
+
+            # Prepare request
+            url = 'https://alzajelservice.com/api/get_order_status'
+            headers = {
+                'auth_key': zajilauthkey,
+                'Content-Type': 'application/json'
+            }
+            data = {
+                'vendor_id': "6773e6a250b1b88c1b701857",  # Your vendor ID
+                'order_id': self.carrier_tracking_ref
+            }
+
+            _logger.info("Sending status request to Zajil API - Data: %s", data)
+
+            response = requests.post(url, json=data, headers=headers)
+            _logger.info("Zajil API Status Response Status Code: %s", response.status_code)
+            _logger.info("Zajil API Status Response Content: %s", response.text)
+
+            response_data = response.json()
+
+            # Update picking with status information
+            update_vals = {
+                'zajil_status': response_data.get('order_status'),
+                'zajil_status_code': response_data.get('order_status_code'),
+                'zajil_driver_name': response_data.get('driver_name'),
+                'zajil_driver_phone': response_data.get('driver_msisdn'),
+                'zajil_date_assigned': response_data.get('date_assigned'),
+                'zajil_date_delivered': response_data.get('date_delivered'),
+                'zajil_date_expected': response_data.get('date_expected'),
+                'zajil_shipping_quote': response_data.get('shipping_quote_total'),
+                'zajil_qrcode_url': response_data.get('qrcode'),
+                'zajil_tracking_url': response_data.get('trackingURl')
+            }
+
+            self.write(update_vals)
+
+            # Create message in chatter
+            status_msg = _("""Zajil Shipment Status Updated
+Order ID: %s
+Status: %s
+Driver: %s
+Driver Phone: %s
+Date Assigned: %s
+Expected Delivery: %s
+Shipping Quote: %s""") % (
+                self.carrier_tracking_ref,
+                response_data.get('order_status'),
+                response_data.get('driver_name'),
+                response_data.get('driver_msisdn'),
+                response_data.get('date_assigned'),
+                response_data.get('date_expected'),
+                response_data.get('shipping_quote_total')
+            )
+            self.message_post(body=status_msg)
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _("Status Updated"),
+                    'message': _("Current Status: %s") % response_data.get('order_status'),
+                    'type': 'info',
+                    'sticky': False,
+                }
+            }
+
+        except requests.exceptions.RequestException as e:
+            _logger.error("Error in Zajil API status request: %s", str(e), exc_info=True)
+            raise exceptions.UserError(_(f"Error communicating with Zajil API: {str(e)}"))
+        except Exception as e:
+            _logger.error("Error getting Zajil shipment status: %s", str(e), exc_info=True)
+            raise exceptions.UserError(_(f"Error getting shipment status: {str(e)}"))
