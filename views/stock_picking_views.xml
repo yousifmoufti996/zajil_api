@@ -19,7 +19,7 @@
                         invisible="not carrier_tracking_ref or zajil_order_state == 'cancelled'"
                         class="oe_highlight"/>
                     <button name="action_get_zajil_status" 
-                        string="Update Zajil Status" 
+                        string="get Zajil Shipment Status" 
                         type="object" 
                         invisible=" carrier_tracking_ref and zajil_order_state == 'created'"
                         class="oe_highlight"/>
